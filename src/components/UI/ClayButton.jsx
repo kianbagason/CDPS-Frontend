@@ -10,6 +10,8 @@ const ClayButton = ({
     ? 'clay-btn'
     : variant === 'secondary'
     ? 'clay-btn clay-btn-secondary'
+    : variant === 'muted'
+    ? 'clay-btn clay-btn-muted'
     : variant === 'success'
     ? 'clay-btn clay-btn-success'
     : variant === 'danger'

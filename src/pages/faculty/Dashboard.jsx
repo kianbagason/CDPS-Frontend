@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import ClayCard from '../../components/UI/ClayCard';
@@ -75,21 +75,17 @@ const FacultyDashboard = () => {
         </ClayCard>
       </div>
 
-      <Routes>
-        <Route path="/*" element={
-          <ClayCard>
-            <h3 style={{ color: 'var(--primary-orange)', marginBottom: '16px' }}>
-              Faculty Portal Features
-            </h3>
-            <ul style={{ lineHeight: '2', color: 'var(--text-secondary)' }}>
-              <li>View student profiles and academic records</li>
-              <li>Add and manage student violations</li>
-              <li>View your teaching schedule</li>
-              <li>Access course materials and syllabi</li>
-            </ul>
-          </ClayCard>
-        } />
-      </Routes>
+      <ClayCard>
+        <h3 style={{ color: 'var(--primary-orange)', marginBottom: '16px' }}>
+          Faculty Portal Features
+        </h3>
+        <ul style={{ lineHeight: '2', color: 'var(--text-secondary)' }}>
+          <li>View student profiles and academic records</li>
+          <li>Add and manage student violations</li>
+          <li>View your teaching schedule</li>
+          <li>Access course materials and syllabi</li>
+        </ul>
+      </ClayCard>
     </div>
   );
 };

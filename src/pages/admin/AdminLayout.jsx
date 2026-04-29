@@ -3,11 +3,17 @@ import { useAuth } from '../../context/AuthContext';
 import Sidebar from '../../components/Layout/Sidebar';
 import AdminDashboard from './Dashboard';
 import StudentList from './StudentList';
+import SectionStudents from './SectionStudents';
+import StudentDetail from './StudentDetail';
 import QuerySearch from './QuerySearch';
 import FacultyList from './FacultyList';
 import EventManagement from './EventManagement';
+import Affiliations from './Affiliations';
 import AddViolation from './AddViolation';
+import ViolationsHistory from './ViolationsHistory';
 import ScheduleManagement from './ScheduleManagement';
+import SubjectManagement from './SubjectManagement';
+import Reports from './Reports';
 import ClayButton from '../../components/UI/ClayButton';
 import toast from 'react-hot-toast';
 
@@ -20,9 +26,12 @@ const AdminLayout = () => {
     { path: '/admin/students', label: 'Students', icon: '👨‍🎓' },
     { path: '/admin/query', label: 'Query System', icon: '🔍' },
     { path: '/admin/faculty', label: 'Faculty', icon: '👨‍🏫' },
+    { path: '/admin/subjects', label: 'Subjects', icon: '📚' },
     { path: '/admin/schedules', label: 'Schedules', icon: '📅' },
     { path: '/admin/events', label: 'Events', icon: '📅' },
-    { path: '/admin/violations', label: 'Add Violation', icon: '⚠️' }
+    { path: '/admin/affiliations', label: 'School-Affiliated Organization and Groups', icon: '🏷️' },
+    { path: '/admin/violations', label: 'Add Violation', icon: '⚠️' },
+    { path: '/admin/reports', label: 'Reports', icon: '📊' }
   ];
 
   const handleLogout = () => {
@@ -63,11 +72,17 @@ const AdminLayout = () => {
           <Routes>
             <Route index element={<AdminDashboard />} />
             <Route path="students" element={<StudentList />} />
+            <Route path="students/section/:year/:section" element={<SectionStudents />} />
+            <Route path="students/view/:id" element={<StudentDetail />} />
             <Route path="query" element={<QuerySearch />} />
             <Route path="faculty" element={<FacultyList />} />
+            <Route path="subjects" element={<SubjectManagement />} />
             <Route path="schedules" element={<ScheduleManagement />} />
             <Route path="events" element={<EventManagement />} />
+            <Route path="affiliations" element={<Affiliations />} />
             <Route path="violations" element={<AddViolation />} />
+            <Route path="violations/history" element={<ViolationsHistory />} />
+            <Route path="reports" element={<Reports />} />
           </Routes>
         </div>
       </div>

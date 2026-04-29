@@ -23,42 +23,68 @@ const Sidebar = ({ items, title }) => {
         flexDirection: 'column'
       }}
     >
-      {/* Header */}
+      {/* Header - fixed height to avoid layout shift when collapsing */}
       <div
         style={{
-          padding: '0 20px 20px',
+          height: '72px',
+          boxSizing: 'border-box',
+          padding: '0 20px',
           borderBottom: '1px solid rgba(255,255,255,0.1)',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative'
         }}
       >
         <h2
           style={{
             color: 'var(--primary-orange)',
-            fontSize: collapsed ? '0' : '20px',
-            marginBottom: '0',
+            fontSize: '20px',
+            margin: 0,
             opacity: collapsed ? 0 : 1,
-            transition: 'all 0.3s ease'
+            visibility: collapsed ? 'hidden' : 'visible',
+            transition: 'opacity 0.2s ease, visibility 0.2s ease'
           }}
         >
           {title}
         </h2>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-primary)',
-            fontSize: '20px',
-            cursor: 'pointer',
-            padding: '4px'
-          }}
-        >
-          {collapsed ? '→' : '←'}
-        </button>
+        {/* collapse/expand toggle pinned to sidebar edge (keeps position stable) */}
       </div>
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        style={{
+          position: 'absolute',
+          top: '18px',
+          right: collapsed ? '-18px' : '-18px',
+          transform: 'none',
+          background: 'var(--clay-surface)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          color: 'var(--text-primary)',
+          width: '36px',
+          height: '36px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          padding: 0,
+          boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
+          zIndex: 110
+        }}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 200ms ease' }}
+        >
+          <path d="M8 5l8 7-8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      
 
       {/* Navigation Items */}
       <nav style={{ flex: 1 }}>
@@ -71,7 +97,8 @@ const Sidebar = ({ items, title }) => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                padding: collapsed ? '14px 0' : '14px 20px',
+                padding: collapsed ? '10px 0' : '12px 20px',
+                minHeight: '48px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
                 marginBottom: '8px',
                 textDecoration: 'none',
@@ -95,7 +122,7 @@ const Sidebar = ({ items, title }) => {
                 }
               }}
             >
-              <span style={{ fontSize: '20px', minWidth: '24px', textAlign: 'center' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', fontSize: '20px' }}>
                 {item.icon}
               </span>
               <span

@@ -31,7 +31,7 @@ const StudentEvents = () => {
 
   const fetchStudentProfile = async () => {
     try {
-      const response = await api.get('/students/profile');
+      const response = await api.get('/students/profile/me');
       setStudentProfile(response.data.data);
     } catch (error) {
       console.error('Failed to load profile');

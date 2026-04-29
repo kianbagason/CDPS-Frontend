@@ -37,6 +37,8 @@ const PasswordInput = ({
         />
         <button
           type="button"
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+          title={showPassword ? 'Hide password' : 'Show password'}
           onClick={() => setShowPassword(!showPassword)}
           style={{
             position: 'absolute',
@@ -54,7 +56,7 @@ const PasswordInput = ({
             fontSize: '18px'
           }}
         >
-          {showPassword ? <FaEyeSlash /> : <FaEye />}
+          {showPassword ? <FaEye /> : <FaEyeSlash />}
         </button>
       </div>
     </div>

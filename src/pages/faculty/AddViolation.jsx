@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import StudentSearch from '../../components/common/StudentSearch';
 import api from '../../services/api';
 import ClayCard from '../../components/UI/ClayCard';
 import ClayButton from '../../components/UI/ClayButton';
@@ -7,30 +8,18 @@ import Loading from '../../components/common/Loading';
 import toast from 'react-hot-toast';
 
 const AddViolation = () => {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     studentId: '',
     violationType: '',
     description: '',
-    sanction: ''
+    sanction: '',
+    message: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  const fetchStudents = async () => {
-    try {
-      const response = await api.get('/students');
-      setStudents(response.data.data);
-    } catch (error) {
-      toast.error('Failed to load students');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Student selection will be handled by AJAX search component
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -44,7 +33,8 @@ const AddViolation = () => {
       await api.post(`/violations/${formData.studentId}`, {
         violationType: formData.violationType,
         description: formData.description,
-        sanction: formData.sanction
+        sanction: formData.sanction,
+        message: formData.message
       });
 
       toast.success('Violation recorded successfully!');
@@ -52,7 +42,8 @@ const AddViolation = () => {
         studentId: '',
         violationType: '',
         description: '',
-        sanction: ''
+        sanction: '',
+        message: ''
       });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to record violation');
@@ -76,20 +67,22 @@ const AddViolation = () => {
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
               Select Student *
             </label>
-            <select
-              name="studentId"
-              value={formData.studentId}
-              onChange={handleChange}
-              required
-              className="clay-select"
-            >
-              <option value="">Choose a student...</option>
-              {students.map(student => (
-                <option key={student._id} value={student._id}>
-                  {student.studentNumber} - {student.lastName}, {student.firstName} ({student.course})
-                </option>
-              ))}
-            </select>
+            {/* AJAX-driven student search */}
+            <div className="mb-md">
+              <input
+                className="clay-input"
+                readOnly
+                value={selectedStudent ? `${selectedStudent.studentNumber} - ${selectedStudent.lastName}, ${selectedStudent.firstName}` : ''}
+                placeholder="Use search to pick a student"
+              />
+              <small style={{ display: 'block', marginTop: '6px', color: 'var(--text-secondary)' }}>Open the search below to find a student by number or name.</small>
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              {/* Lazy-load StudentSearch to avoid initial bundle cost */}
+              <React.Suspense fallback={<div>Loading search...</div>}>
+                <StudentSearch onSelect={(s) => { setSelectedStudent(s); setFormData({ ...formData, studentId: s._id }); }} />
+              </React.Suspense>
+            </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
@@ -123,6 +116,15 @@ const AddViolation = () => {
             onChange={handleChange}
             required
             placeholder="Provide detailed description of the violation"
+            className="mb-md"
+          />
+
+          <ClayInput
+            label="Message (notification)"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Short message to notify student (optional)"
             className="mb-md"
           />
 

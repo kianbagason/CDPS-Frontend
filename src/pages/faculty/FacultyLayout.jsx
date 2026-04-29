@@ -7,6 +7,7 @@ import FacultySchedule from './Schedule';
 import AddViolation from './AddViolation';
 import EventManagement from './EventManagement';
 import FacultyChangePassword from './ChangePassword';
+import FacultyAffiliations from './Affiliations';
 import ClayButton from '../../components/UI/ClayButton';
 import toast from 'react-hot-toast';
 
@@ -19,6 +20,7 @@ const FacultyLayout = () => {
     { path: '/faculty/students', label: 'Students', icon: '👨‍🎓' },
     { path: '/faculty/schedule', label: 'My Schedule', icon: '📅' },
     { path: '/faculty/violations', label: 'Add Violation', icon: '⚠️' },
+    { path: '/faculty/affiliations', label: 'Affiliations', icon: '🏷️' },
     { path: '/faculty/events', label: 'Events', icon: '📅' },
     { path: '/faculty/change-password', label: 'Change Password', icon: '🔐' }
   ];
@@ -59,6 +61,7 @@ const FacultyLayout = () => {
           <Routes>
             <Route index element={<FacultyDashboard />} />
             <Route path="students" element={<FacultyStudents />} />
+            <Route path="affiliations" element={<FacultyAffiliations />} />
             <Route path="schedule" element={<FacultySchedule />} />
             <Route path="violations" element={<AddViolation />} />
             <Route path="events" element={<EventManagement />} />

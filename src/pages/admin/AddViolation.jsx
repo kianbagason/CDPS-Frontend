@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import StudentSearch from '../../components/common/StudentSearch';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import ClayCard from '../../components/UI/ClayCard';
 import ClayButton from '../../components/UI/ClayButton';
@@ -7,34 +9,26 @@ import Loading from '../../components/common/Loading';
 import toast from 'react-hot-toast';
 
 const AddViolation = () => {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     studentId: '',
     violationType: '',
     description: '',
-    sanction: ''
+    sanction: '',
+    message: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [violations, setViolations] = useState([]);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  const fetchStudents = async () => {
-    try {
-      const response = await api.get('/students');
-      setStudents(response.data.data);
-    } catch (error) {
-      toast.error('Failed to load students');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use AJAX student search instead of loading all students
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  // History is shown in a dedicated page. The button below navigates there.
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,7 +38,8 @@ const AddViolation = () => {
       await api.post(`/violations/${formData.studentId}`, {
         violationType: formData.violationType,
         description: formData.description,
-        sanction: formData.sanction
+        sanction: formData.sanction,
+        message: formData.message
       });
 
       toast.success('Violation recorded successfully!');
@@ -52,7 +47,8 @@ const AddViolation = () => {
         studentId: '',
         violationType: '',
         description: '',
-        sanction: ''
+        sanction: '',
+        message: ''
       });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to record violation');
@@ -76,20 +72,20 @@ const AddViolation = () => {
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
               Select Student *
             </label>
-            <select
-              name="studentId"
-              value={formData.studentId}
-              onChange={handleChange}
-              required
-              className="clay-select"
-            >
-              <option value="">Choose a student...</option>
-              {students.map(student => (
-                <option key={student._id} value={student._id}>
-                  {student.studentNumber} - {student.lastName}, {student.firstName} ({student.course})
-                </option>
-              ))}
-            </select>
+            <div className="mb-md">
+              <input
+                className="clay-input"
+                readOnly
+                value={selectedStudent ? `${selectedStudent.studentNumber} - ${selectedStudent.lastName}, ${selectedStudent.firstName}` : ''}
+                placeholder="Use search to pick a student"
+              />
+              <small style={{ display: 'block', marginTop: '6px', color: 'var(--text-secondary)' }}>Open the search below to find a student by number or name.</small>
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              <React.Suspense fallback={<div>Loading search...</div>}>
+                <StudentSearch onSelect={(s) => { setSelectedStudent(s); setFormData({ ...formData, studentId: s._id }); }} />
+              </React.Suspense>
+            </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
@@ -127,6 +123,15 @@ const AddViolation = () => {
           />
 
           <ClayInput
+            label="Message (notification)"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Short message to notify student (optional)"
+            className="mb-md"
+          />
+
+          <ClayInput
             label="Sanction"
             name="sanction"
             value={formData.sanction}
@@ -145,20 +150,42 @@ const AddViolation = () => {
         </form>
 
         <div style={{
-          marginTop: '24px',
-          padding: '16px',
-          background: 'rgba(244, 67, 54, 0.1)',
-          borderRadius: '12px'
+          display: 'flex',
+          gap: '24px',
+          marginTop: '24px'
         }}>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-            <strong>⚠️ Important:</strong>
-          </p>
-          <ul style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '2', marginLeft: '20px' }}>
-            <li>Violations will be permanently recorded in the student's profile</li>
-            <li>Students can view their violations in their portal</li>
-            <li>Provide accurate and detailed descriptions</li>
-            <li>Sanctions should follow school policies</li>
-          </ul>
+
+          <div style={{ flex: 1 }}>
+            <div style={{
+              padding: '16px',
+              background: 'rgba(244, 67, 54, 0.1)',
+              borderRadius: '12px'
+            }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <strong>⚠️ Important:</strong>
+              </p>
+              <ul style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '2', marginLeft: '20px' }}>
+                <li>Violations will be permanently recorded in the student's profile</li>
+                <li>Students can view their violations in their portal</li>
+                <li>Provide accurate and detailed descriptions</li>
+                <li>Sanctions should follow school policies</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style={{ width: '360px' }}>
+            <div style={{ padding: '12px 16px', background: 'var(--card-bg)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 style={{ margin: '0 0 8px 0', color: 'var(--primary-orange)' }}>History</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>View the full violations history (past → recent) for all students.</p>
+              <div style={{ marginTop: '8px' }}>
+                <ClayButton onClick={() => navigate('/admin/violations/history')} style={{ width: '100%' }}>
+                  View All Violations History
+                </ClayButton>
+              </div>
+              <small style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Opens a dedicated page listing violators from most recent to oldest.</small>
+            </div>
+          </div>
+
         </div>
       </ClayCard>
     </div>

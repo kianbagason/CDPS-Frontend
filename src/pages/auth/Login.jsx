@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ClayInput from '../../components/UI/ClayInput';
@@ -13,7 +13,14 @@ const Login = () => {
     username: '',
     password: ''
   });
+  const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    // If a role is selected, adjust username placeholder to hint role
+    // (no functional change to auth flow)
+  }, [selectedRole]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,16 +30,40 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    const result = await login(formData.username, formData.password);
-    
-    if (result.success) {
-      toast.success('Login successful!');
-      navigate('/');
-    } else {
-      toast.error(result.message);
+    // Require role selection
+    if (!selectedRole) {
+      const msg = 'Please select Admin, Faculty, or Student before logging in';
+      setErrorMessage(msg);
+      toast.error(msg, { duration: 8000, icon: '⛔', style: { background: '#2b2b2b', color: '#ffb4b4' } });
+      setLoading(false);
+      return;
     }
-    
-    setLoading(false);
+
+    try {
+      const result = await login(formData.username, formData.password, selectedRole);
+
+      if (result && result.success) {
+        setErrorMessage('');
+        toast.success('Login successful!', { position: 'top-right', icon: '✅', style: { borderRadius: '10px', background: '#183e2b', color: '#e6ffed', padding: '10px 14px' } });
+        navigate('/');
+        return;
+      }
+
+      // Persist error visibly and keep form inputs intact
+      const msg = (result && result.message) || 'Login failed';
+      setErrorMessage(msg);
+      toast.error(msg, { duration: Infinity, icon: '⛔', position: 'top-right', style: { borderRadius: '10px', background: '#2b2b2b', color: '#ffb4b4', padding: '10px 14px' } });
+      const u = document.querySelector('input[name="username"]');
+      if (u) u.focus();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Unexpected error during login';
+      setErrorMessage(msg);
+      toast.error(msg, { duration: Infinity, icon: '⛔', position: 'top-right', style: { borderRadius: '10px', background: '#2b2b2b', color: '#ffb4b4', padding: '10px 14px' } });
+      const u = document.querySelector('input[name="username"]');
+      if (u) u.focus();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,15 +94,77 @@ const Login = () => {
           <p style={{ color: 'var(--text-light)', fontSize: '14px', marginTop: '8px' }}>
             Pamantasan ng Cabuyao
           </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setSelectedRole('faculty')}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '10px',
+                border: selectedRole === 'faculty' ? '2px solid var(--primary-orange)' : '1px solid rgba(255,255,255,0.06)',
+                background: 'transparent',
+                color: selectedRole === 'faculty' ? 'var(--primary-orange)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              Faculty
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedRole('student')}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '10px',
+                border: selectedRole === 'student' ? '2px solid var(--primary-orange)' : '1px solid rgba(255,255,255,0.06)',
+                background: 'transparent',
+                color: selectedRole === 'student' ? 'var(--primary-orange)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              Student
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setSelectedRole('admin')}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '10px',
+                border: selectedRole === 'admin' ? '2px solid var(--primary-orange)' : '1px solid rgba(255,255,255,0.06)',
+                background: 'transparent',
+                color: selectedRole === 'admin' ? 'var(--primary-orange)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              Admin
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
+          {errorMessage && (
+            <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ color: '#b00020', fontWeight: 600, flex: 1 }}>{errorMessage}</div>
+              <button
+                type="button"
+                onClick={() => { setErrorMessage(''); toast.dismiss(); }}
+                style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--text-secondary)', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           <ClayInput
             label="Username"
             name="username"
             value={formData.username}
             onChange={handleChange}
-            placeholder="Enter your username"
+            placeholder={selectedRole ? `Enter ${selectedRole} username` : 'Enter your username'}
             required
             className="mb-md"
           />
@@ -88,7 +181,7 @@ const Login = () => {
 
           <ClayButton
             type="submit"
-            disabled={loading}
+            disabled={loading || !selectedRole}
             style={{ width: '100%', padding: '14px' }}
           >
             {loading ? 'Logging in...' : 'Login'}
@@ -111,7 +204,7 @@ const Login = () => {
                 textDecoration: 'none'
               }}
             >
-              Enroll here
+              Student Registration
             </Link>
           </p>
         </div>

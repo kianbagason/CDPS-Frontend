@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([]);
   const [faculty, setFaculty] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -34,6 +35,7 @@ const ScheduleManagement = () => {
   useEffect(() => {
     fetchSchedules();
     fetchFaculty();
+    fetchSubjects();
   }, []);
 
   const fetchSchedules = async () => {
@@ -56,6 +58,15 @@ const ScheduleManagement = () => {
     }
   };
 
+  const fetchSubjects = async () => {
+    try {
+      const response = await api.get('/subjects');
+      setSubjects(response.data.data);
+    } catch (error) {
+      console.error('Failed to load subjects');
+    }
+  };
+
   const fetchEnrolledStudents = async (scheduleId) => {
     try {
       const response = await api.get(`/schedules/${scheduleId}/students`);
@@ -67,7 +78,22 @@ const ScheduleManagement = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+    
+    // If subject code is changed, auto-populate subject name
+    if (name === 'subjectCode') {
+      const selectedSubject = subjects.find(s => s.subjectCode === value);
+      if (selectedSubject) {
+        setFormData({ 
+          ...formData, 
+          subjectCode: value,
+          subjectName: selectedSubject.subjectName 
+        });
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
+    } else {
+      setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -247,24 +273,53 @@ const ScheduleManagement = () => {
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-2" style={{ marginBottom: '16px' }}>
-                <ClayInput
-                  label="Subject Code"
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Subject *</label>
+                <select
                   name="subjectCode"
                   value={formData.subjectCode}
                   onChange={handleChange}
                   required
-                  placeholder="e.g., IT101"
-                />
-                <ClayInput
-                  label="Subject Name"
-                  name="subjectName"
-                  value={formData.subjectName}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g., Introduction to Programming"
-                />
+                  className="clay-select"
+                >
+                  <option value="">Select Subject...</option>
+                  {subjects
+                    .filter(s => s.isActive !== false && (!formData.course || s.course === formData.course))
+                    .map(subject => (
+                      <option key={subject._id} value={subject.subjectCode}>
+                        {subject.subjectCode} - {subject.subjectName} (Year {subject.yearLevel}, {subject.semester})
+                      </option>
+                    ))}
+                </select>
+                {subjects.length === 0 && (
+                  <p style={{ fontSize: '13px', color: 'var(--warning)', marginTop: '8px' }}>
+                    ⚠️ No subjects created yet. Please go to <strong>Subjects</strong> module to add subjects first.
+                  </p>
+                )}
+                {subjects.length > 0 && subjects.filter(s => s.isActive !== false && s.course === formData.course).length === 0 && (
+                  <p style={{ fontSize: '13px', color: 'var(--warning)', marginTop: '8px' }}>
+                    ⚠️ No subjects available for {formData.course}. Please add subjects in the Subjects module.
+                  </p>
+                )}
               </div>
+
+              {formData.subjectName && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                    Subject Name (Auto-filled)
+                  </label>
+                  <div style={{ 
+                    padding: '12px', 
+                    background: 'var(--clay-surface-alt)', 
+                    borderRadius: '8px',
+                    border: '1px solid var(--clay-border)',
+                    color: 'var(--text-primary)',
+                    fontWeight: '500'
+                  }}>
+                    {formData.subjectName}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-2" style={{ marginBottom: '16px' }}>
                 <div>
@@ -278,8 +333,6 @@ const ScheduleManagement = () => {
                   >
                     <option value="BSIT">BSIT</option>
                     <option value="BSCS">BSCS</option>
-                    <option value="BSIS">BSIS</option>
-                    <option value="ACT">ACT</option>
                   </select>
                 </div>
                 <ClayInput
@@ -343,6 +396,7 @@ const ScheduleManagement = () => {
                   className="clay-select"
                 >
                   <option value="">Select Day...</option>
+                  <option value="Sunday">Sunday</option>
                   <option value="Monday">Monday</option>
                   <option value="Tuesday">Tuesday</option>
                   <option value="Wednesday">Wednesday</option>

@@ -25,9 +25,12 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username, password, role) => {
     try {
-      const response = await api.post('/auth/login', { username, password });
+      // Include optional role to ensure users sign in to the correct portal
+      const body = { username, password };
+      if (role) body.role = role;
+      const response = await api.post('/auth/login', body);
       const { data } = response.data;
       
       localStorage.setItem('token', data.token);

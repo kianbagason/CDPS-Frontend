@@ -7,9 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       // Proxy API requests to the deployed backend to avoid CORS in development
-      // In local development proxy to your local backend (change if your backend runs on a different port)
+      // Points to deployed Render backend so it works from any device
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://cdps-backend.onrender.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api')

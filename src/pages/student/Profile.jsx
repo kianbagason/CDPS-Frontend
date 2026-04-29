@@ -4,6 +4,7 @@ import api from '../../services/api';
 import ClayCard from '../../components/UI/ClayCard';
 import ClayButton from '../../components/UI/ClayButton';
 import toast from 'react-hot-toast';
+import ViolationSidebar from '../../components/common/ViolationSidebar';
 
 const StudentProfile = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ const StudentProfile = () => {
   const [newSkillProf, setNewSkillProf] = useState('Beginner');
   const [editingIdx, setEditingIdx] = useState(null);
   const [expandedSet, setExpandedSet] = useState(new Set());
+  const [showViolationSidebar, setShowViolationSidebar] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -211,6 +213,9 @@ const StudentProfile = () => {
   return (
     <div>
       <h1 style={{ color: 'var(--primary-orange)' }}>My Profile</h1>
+      <div className="violation-fab">
+        <ClayButton onClick={() => setShowViolationSidebar(true)}>Violations</ClayButton>
+      </div>
 
       <div style={{ marginTop: '16px' }}>
         <div className="grid grid-2">
@@ -279,6 +284,7 @@ const StudentProfile = () => {
             </div>
           </ClayCard>
         </div>
+        <ViolationSidebar open={showViolationSidebar} onClose={() => setShowViolationSidebar(false)} violations={profile.violations || []} />
         
         {/* Skills editor */}
         <div style={{ marginTop: '20px' }}>
